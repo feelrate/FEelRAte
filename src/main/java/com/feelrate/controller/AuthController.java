@@ -1,8 +1,9 @@
 package com.feelrate.controller;
 
 import com.feelrate.domain.User;
-import com.feelrate.dto.NaverUserInfo;
-import com.feelrate.service.NaverOAuthService;
+import com.feelrate.dto.KakaoUserInfo;
+import com.feelrate.security.JwtProvider;
+import com.feelrate.service.KakaoOAuthService;
 import com.feelrate.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -17,17 +18,18 @@ import java.util.Map;
 @RequiredArgsConstructor
 @RequestMapping("/auth")
 public class AuthController {
-    private final NaverOAuthService naverOAuthService;
+
+    private final KakaoOAuthService kakaoOAuthService;
     private final UserService userService;
+    private final JwtProvider jwtProvider;
 
-    @PostMapping("/naver")
-    public ResponseEntity<?> loginWithNaver(@RequestBody Map<String, String> body) {
+    @PostMapping("/kakao")
+    public ResponseEntity<?> loginWithKakao(@RequestBody Map<String, String> body) {
         String accessToken = body.get("accessToken");
-
-        NaverUserInfo userInfo = naverOAuthService.getUserInfo(accessToken);
+        KakaoUserInfo userInfo = kakaoOAuthService.getUserInfo(accessToken);
         User user = userService.loginOrRegister(userInfo);
+        String jwt = jwtProvider.createToken(user.getId());
 
-        String jwt = "임시토큰"; // 나중에 JWT 생성기로 대체
         return ResponseEntity.ok(Map.of("token", jwt));
     }
 }

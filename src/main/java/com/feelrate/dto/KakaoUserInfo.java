@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class NaverUserInfo {
+public class KakaoUserInfo {
     private String id;
     private String email;
     private String nickname;
