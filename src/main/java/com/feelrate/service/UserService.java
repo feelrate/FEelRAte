@@ -1,33 +1,43 @@
 package com.feelrate.service;
 
 import com.feelrate.domain.User;
-import com.feelrate.dto.KakaoUserInfo;
+import com.feelrate.dto.AddUserRequest;
 import com.feelrate.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 
-@Service
 @RequiredArgsConstructor
+@Service
 public class UserService {
 
     private final UserRepository userRepository;
 
-    public User loginOrRegister(KakaoUserInfo info) {
-        return userRepository.findByKakaoId(info.getId())
-                .orElseGet(() -> {
-                    User user = new User();
-                    user.setKakaoId(info.getId());
-                    user.setEmail(info.getEmail());
-                    user.setNickname(info.getNickname());
-                    user.setCreatedAt(LocalDateTime.now());
-                    return userRepository.save(user);
-                });
+    public Long save(AddUserRequest dto) {
+        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+
+        return userRepository.save(User.builder()
+                .email(dto.getEmail())
+                .name(dto.getName())
+                .password(encoder.encode(dto.getPassword()))
+                .build()).getId();
     }
 
-    public User findById(Long id) {
-        return userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("사용자 없음"));
+    public User findById(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("Unexpected user"));
+    }
+
+    public User findByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("Unexpected user"));
+    }
+    public User findOrCreateUser(String email, String name) {
+        return userRepository.findByEmail(email)
+                .orElseGet(() -> userRepository.save(User.builder()
+                        .email(email)
+                        .name(name)
+                        .build()));
     }
 }
